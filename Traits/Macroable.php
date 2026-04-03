@@ -75,7 +75,7 @@ trait Macroable
     }
 
     /**
-     * Dynamically handle calls to the class.
+     * Handles a static macro call.
      *
      * @param  string  $method
      * @param  array  $parameters
@@ -83,7 +83,7 @@ trait Macroable
      *
      * @throws \BadMethodCallException
      */
-    public static function __callStatic($method, $parameters)
+    protected static function __macroStatic($method, $parameters)
     {
         if (! static::hasMacro($method)) {
             throw new BadMethodCallException(sprintf(
@@ -101,7 +101,7 @@ trait Macroable
     }
 
     /**
-     * Dynamically handle calls to the class.
+     * Handles an instance macro call.
      *
      * @param  string  $method
      * @param  array  $parameters
@@ -109,7 +109,7 @@ trait Macroable
      *
      * @throws \BadMethodCallException
      */
-    public function __call($method, $parameters)
+    protected function __macro($method, $parameters)
     {
         if (! static::hasMacro($method)) {
             throw new BadMethodCallException(sprintf(
@@ -124,5 +124,35 @@ trait Macroable
         }
 
         return $macro(...$parameters);
+    }
+
+    /**
+     * Dynamically handle calls to the class.
+     * Replaced by any class, with `__callStatic`, using this trait.
+     *
+     * @param  string  $method
+     * @param  array  $parameters
+     * @return mixed
+     *
+     * @throws \BadMethodCallException
+     */
+    public static function __callStatic($method, $parameters)
+    {
+        return static::__macroStatic($method, $parameters);
+    }
+
+    /**
+     * Dynamically handle calls to the instance.
+     * Replaced by any class, with `__call`, using this trait.
+     *
+     * @param  string  $method
+     * @param  array  $parameters
+     * @return mixed
+     *
+     * @throws \BadMethodCallException
+     */
+    public function __call($method, $parameters)
+    {
+        return $this->__macro($method, $parameters);
     }
 }
